@@ -6,12 +6,14 @@ var linux = parsers.linux;
 var darwin = parsers.darwin;
 
 var line = null;
+var lineNoState = null;
 
 describe('Parsers', function () {
     describe('linux', function () {
 
         beforeEach(function () {
             line = 'tcp        0      0 2.2.5.144:35507    1.2.3.4:80      ESTABLISHED 7777/foo';
+            lineNoState = 'tcp        0      0 2.2.5.144:35507    1.2.3.4:80       7777/foo';
         });
 
         it('should parse the correct fields', function () {
@@ -32,6 +34,25 @@ describe('Parsers', function () {
                 });
             });
         });
+
+      it('should parse the correct fields (line with no state)', function () {
+        linux.call(null, lineNoState, function (data) {
+          expect(data).to.deep.equal({
+            protocol: 'tcp',
+            local: {
+              address: '2.2.5.144',
+              port: 35507
+            },
+            remote: {
+              address: '1.2.3.4',
+              port: 80
+            },
+
+            state: '',
+            pid: 7777
+          });
+        });
+      });
 
         it('should parse the correct fields for processes with spaces in names', function () {
             line = 'tcp        0      0 2.2.5.144:35507      1.2.3.4:80     ESTABLISHED 7777/sshd: user';
